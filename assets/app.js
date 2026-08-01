@@ -1,5 +1,85 @@
 const $ = (s) => document.querySelector(s);
 let allNews = [];
+let currentSymbol = "BIST:XU100";
+
+const defaultFavorites = [
+  { symbol: "BIST:THYAO", name: "THYAO" },
+  { symbol: "BIST:ASELS", name: "ASELS" },
+  { symbol: "BIST:TUPRS", name: "TUPRS" },
+  { symbol: "BIST:EREGL", name: "EREGL" },
+  { symbol: "BIST:AKBNK", name: "AKBNK" }
+];
+
+function normalizeSymbol(value) {
+  let code = (value || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!code) return "";
+  if (!code.includes(":")) code = `BIST:${code}`;
+  return code;
+}
+
+function symbolLabel(symbol) {
+  return symbol.replace(/^BIST:/, "");
+}
+
+function getFavorites() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("bistFavorites"));
+    return Array.isArray(stored) ? stored : defaultFavorites;
+  } catch {
+    return defaultFavorites;
+  }
+}
+
+function saveFavorites(items) {
+  localStorage.setItem("bistFavorites", JSON.stringify(items));
+}
+
+function isFavorite(symbol) {
+  return getFavorites().some(item => item.symbol === symbol);
+}
+
+function updateFavoriteButton() {
+  const btn = $("#addFavoriteBtn");
+  const active = isFavorite(currentSymbol);
+  btn.classList.toggle("active", active);
+  btn.textContent = active ? "★ Favorilerde" : "☆ Favoriye ekle";
+}
+
+function renderFavorites() {
+  const list = $("#favoriteList");
+  const items = getFavorites();
+
+  if (!items.length) {
+    list.innerHTML = '<div class="favorite-empty">Henüz favori hisse eklenmedi.</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="favorite-item">
+      <button class="favorite-open" type="button" data-symbol="${item.symbol}">
+        <span class="favorite-symbol">
+          <strong>${item.name || symbolLabel(item.symbol)}</strong>
+          <small>${item.symbol}</small>
+        </span>
+        <span>Grafiği aç →</span>
+      </button>
+      <button class="favorite-remove" type="button" data-remove="${item.symbol}" aria-label="${item.symbol} favorilerden çıkar">×</button>
+    </div>
+  `).join("");
+
+  list.querySelectorAll("[data-symbol]").forEach(button => {
+    button.addEventListener("click", () => openSymbol(button.dataset.symbol));
+  });
+
+  list.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => {
+      const symbol = button.dataset.remove;
+      saveFavorites(getFavorites().filter(item => item.symbol !== symbol));
+      renderFavorites();
+      updateFavoriteButton();
+    });
+  });
+}
 
 function renderChart(symbol = "BIST:XU100") {
   const box = $("#chartContainer");
@@ -8,17 +88,38 @@ function renderChart(symbol = "BIST:XU100") {
   widget.className = "tradingview-widget-container";
   widget.style.height = "100%";
   widget.innerHTML = '<div class="tradingview-widget-container__widget" style="height:100%"></div>';
+
   const script = document.createElement("script");
   script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
   script.async = true;
   script.text = JSON.stringify({
-    autosize: true, symbol, interval: "D", timezone: "Europe/Istanbul",
+    autosize: true,
+    symbol,
+    interval: "D",
+    timezone: "Europe/Istanbul",
     theme: document.body.classList.contains("light") ? "light" : "dark",
-    style: "1", locale: "tr", allow_symbol_change: true,
-    calendar: false, support_host: "https://www.tradingview.com"
+    style: "1",
+    locale: "tr",
+    allow_symbol_change: true,
+    calendar: false,
+    support_host: "https://www.tradingview.com"
   });
+
   widget.appendChild(script);
   box.appendChild(widget);
+}
+
+function openSymbol(symbol) {
+  currentSymbol = normalizeSymbol(symbol);
+  if (!currentSymbol) return;
+
+  $("#chartTitle").textContent = symbolLabel(currentSymbol);
+  $("#symbolSearchInput").value = symbolLabel(currentSymbol);
+  renderChart(currentSymbol);
+  updateFavoriteButton();
+
+  const matchingOption = [...$("#symbolSelect").options].find(o => o.value === currentSymbol);
+  $("#symbolSelect").value = matchingOption ? currentSymbol : "BIST:XU100";
 }
 
 function marketStatus() {
@@ -76,18 +177,47 @@ async function loadNews() {
   }
 }
 
-$("#symbolSelect").addEventListener("change", e => {
-  $("#chartTitle").textContent = e.target.options[e.target.selectedIndex].text;
-  renderChart(e.target.value);
+$("#symbolSelect").addEventListener("change", e => openSymbol(e.target.value));
+
+$("#symbolSearchForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const symbol = normalizeSymbol($("#symbolSearchInput").value);
+  if (!symbol) return;
+  openSymbol(symbol);
 });
+
+$("#addFavoriteBtn").addEventListener("click", () => {
+  const items = getFavorites();
+  if (isFavorite(currentSymbol)) {
+    saveFavorites(items.filter(item => item.symbol !== currentSymbol));
+  } else {
+    items.unshift({ symbol: currentSymbol, name: symbolLabel(currentSymbol) });
+    saveFavorites(items.slice(0, 30));
+  }
+  renderFavorites();
+  updateFavoriteButton();
+});
+
+$("#resetFavoritesBtn").addEventListener("click", () => {
+  saveFavorites(defaultFavorites);
+  renderFavorites();
+  updateFavoriteButton();
+});
+
 $("#searchInput").addEventListener("input", renderNews);
 $("#sentimentFilter").addEventListener("change", renderNews);
+
 $("#themeToggle").addEventListener("click", () => {
   document.body.classList.toggle("light");
   localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
-  renderChart($("#symbolSelect").value);
+  renderChart(currentSymbol);
 });
+
 if (localStorage.getItem("theme") === "light") document.body.classList.add("light");
+
 $("#year").textContent = new Date().getFullYear();
-marketStatus(); setInterval(marketStatus, 60000);
-renderChart(); loadNews();
+marketStatus();
+setInterval(marketStatus, 60000);
+renderFavorites();
+openSymbol(currentSymbol);
+loadNews();
