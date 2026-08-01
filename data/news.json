@@ -1,0 +1,18 @@
+{
+  "updatedAt": "2026-08-01T21:00:00+00:00",
+  "items": [
+    {
+      "id": "demo1",
+      "title": "Canlı haber akışı GitHub Actions çalışınca burada görüntülenecek",
+      "summary": "Depoyu GitHub’a yükledikten sonra Actions sekmesinden Haberleri Güncelle iş akışını bir kez elle çalıştırın.",
+      "link": "https://github.com/features/actions",
+      "source": "Sistem",
+      "published": "2026-08-01T21:00:00+00:00",
+      "sentiment": "neutral",
+      "sentimentLabel": "Bilgi",
+      "tags": [
+        "KURULUM"
+      ]
+    }
+  ]
+}
