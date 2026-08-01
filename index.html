@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="Borsa İstanbul haberleri, KAP bağlantıları ve canlı piyasa grafikleri." />
+  <title>Borsa Gündem | BIST Haber ve Grafik</title>
+  <link rel="preconnect" href="https://s3.tradingview.com">
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark">BG</span>
+      <span><strong>Borsa Gündem</strong><small>BIST haber & grafik terminali</small></span>
+    </a>
+    <div class="header-actions">
+      <span id="marketStatus" class="market-status">Piyasa durumu hesaplanıyor</span>
+      <button id="themeToggle" class="icon-btn" aria-label="Temayı değiştir">◐</button>
+    </div>
+  </header>
+
+  <div class="ticker-wrap">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"description":"BIST 100","proName":"BIST:XU100"},
+          {"description":"BIST 30","proName":"BIST:XU030"},
+          {"description":"Bankacılık","proName":"BIST:XBANK"},
+          {"description":"Sanayi","proName":"BIST:XUSIN"},
+          {"description":"USD/TRY","proName":"FX_IDC:USDTRY"},
+          {"description":"Gram Altın","proName":"FX_IDC:XAUTRYG"}
+        ],
+        "showSymbolLogo": true,
+        "colorTheme": "dark",
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "locale": "tr"
+      }
+      </script>
+    </div>
+  </div>
+
+  <main class="layout">
+    <section class="hero card">
+      <div>
+        <span class="eyebrow">PİYASA MERKEZİ</span>
+        <h1>Haberin etkisini grafik üzerinde takip et.</h1>
+        <p>Borsa İstanbul gündemi, şirket haberleri, KAP bağlantıları ve teknik grafikler tek ekranda.</p>
+      </div>
+      <div class="hero-stats">
+        <div><span id="newsCount">—</span><small>Güncel haber</small></div>
+        <div><span id="lastUpdate">—</span><small>Son güncelleme</small></div>
+      </div>
+    </section>
+
+    <section class="chart-panel card">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">CANLI GRAFİK</span>
+          <h2 id="chartTitle">BIST 100</h2>
+        </div>
+        <select id="symbolSelect" aria-label="Grafik sembolü">
+          <option value="BIST:XU100">BIST 100</option>
+          <option value="BIST:XU030">BIST 30</option>
+          <option value="BIST:XBANK">BIST Banka</option>
+          <option value="BIST:XUSIN">BIST Sanayi</option>
+          <option value="BIST:THYAO">THYAO</option>
+          <option value="BIST:ASELS">ASELS</option>
+          <option value="BIST:TUPRS">TUPRS</option>
+          <option value="BIST:EREGL">EREGL</option>
+          <option value="BIST:AKBNK">AKBNK</option>
+          <option value="BIST:KCHOL">KCHOL</option>
+        </select>
+      </div>
+      <div id="chartContainer" class="chart-container"></div>
+    </section>
+
+    <aside class="watchlist card">
+      <div class="section-head">
+        <div><span class="eyebrow">PİYASA</span><h2>İzleme Listesi</h2></div>
+      </div>
+      <div class="tradingview-widget-container market-widget">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {
+          "colorTheme": "dark",
+          "dateRange": "1D",
+          "showChart": true,
+          "locale": "tr",
+          "width": "100%",
+          "height": "100%",
+          "isTransparent": true,
+          "showSymbolLogo": true,
+          "tabs": [
+            {
+              "title": "Endeksler",
+              "symbols": [
+                {"s":"BIST:XU100","d":"BIST 100"},
+                {"s":"BIST:XU030","d":"BIST 30"},
+                {"s":"BIST:XBANK","d":"Bankacılık"},
+                {"s":"BIST:XUSIN","d":"Sanayi"}
+              ]
+            },
+            {
+              "title": "Hisseler",
+              "symbols": [
+                {"s":"BIST:THYAO","d":"Türk Hava Yolları"},
+                {"s":"BIST:ASELS","d":"Aselsan"},
+                {"s":"BIST:TUPRS","d":"Tüpraş"},
+                {"s":"BIST:EREGL","d":"Ereğli"},
+                {"s":"BIST:AKBNK","d":"Akbank"}
+              ]
+            }
+          ]
+        }
+        </script>
+      </div>
+    </aside>
+
+    <section class="news-panel card">
+      <div class="section-head news-head">
+        <div><span class="eyebrow">HABER AKIŞI</span><h2>Türkiye Borsası Haberleri</h2></div>
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Haber veya hisse ara…" />
+          <select id="sentimentFilter">
+            <option value="all">Tüm etkiler</option>
+            <option value="positive">Olumlu</option>
+            <option value="negative">Olumsuz</option>
+            <option value="neutral">Nötr</option>
+          </select>
+        </div>
+      </div>
+      <div id="newsList" class="news-list">
+        <div class="loading">Haberler yükleniyor…</div>
+      </div>
+    </section>
+
+    <aside class="quick-links card">
+      <div class="section-head"><div><span class="eyebrow">RESMÎ KAYNAKLAR</span><h2>Hızlı Erişim</h2></div></div>
+      <a href="https://www.kap.org.tr/tr/bildirim-sorgu" target="_blank" rel="noopener">KAP Bildirim Sorgu <span>↗</span></a>
+      <a href="https://www.borsaistanbul.com/tr/sayfa/129/veriler" target="_blank" rel="noopener">Borsa İstanbul Verileri <span>↗</span></a>
+      <a href="https://www.spk.gov.tr/bultenler" target="_blank" rel="noopener">SPK Bültenleri <span>↗</span></a>
+      <a href="https://www.tcmb.gov.tr/" target="_blank" rel="noopener">TCMB <span>↗</span></a>
+      <div class="disclaimer">Bu site yatırım tavsiyesi vermez. Veriler gecikmeli olabilir; işlem öncesi resmî kaynakları kontrol edin.</div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>© <span id="year"></span> Borsa Gündem</span>
+    <span>GitHub Pages için statik olarak tasarlandı.</span>
+  </footer>
+  <script src="assets/app.js"></script>
+</body>
+</html>
